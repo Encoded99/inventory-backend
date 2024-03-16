@@ -424,7 +424,14 @@ export  const recordSales=async(req,res,next)=>{
       const {id}= req.params
       const data=req.body
       const userID = req.user._id;
-const transactionDate=  moment(data.date).tz('Africa/Lagos').toDate();
+      console.log(data,'before-conversion')
+
+let transactionDate=null
+if (data.date){
+   transactionDate=  moment(data.date).tz('Africa/Lagos').toDate();
+}
+
+console.log(transactionDate,'after-conversion')
 
      
 
@@ -595,14 +602,18 @@ const transactionDate=  moment(data.date).tz('Africa/Lagos').toDate();
 
 
   if (transactionDate){
-    salesInstance.createdAt = transactionDate; 
+    salesInstance.createdAt = transactionDate;
+    console.log(salesInstance.createdAt,'abnormal-transact')
+ 
   }
 
 
   else{
-    salesInstance.createdAt = new Date();  
+    salesInstance.createdAt = new Date(); 
+    
   }
-
+const lolo= new Date();
+console.log(lolo,'normal')
   
   await salesInstance.save({ session });
 
@@ -790,7 +801,7 @@ export const fetchSalesRecord = async (req, res, next) => {
   const {date,reportType} =req.params
 
 
-
+console.log(date,'date from record');
  
 
 
@@ -798,6 +809,9 @@ export const fetchSalesRecord = async (req, res, next) => {
 
 
 const startDate = moment(date).startOf(`${reportType}`).tz('UTC').toDate();
+
+console.log(startDate,'start date')
+
 
 
 
@@ -1343,7 +1357,7 @@ export const uploadCloudinary = async (req, res) => {
 
 
 
-
+console.log(data.expiryDate,'expiry date');
 
 
 
