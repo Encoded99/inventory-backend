@@ -424,7 +424,7 @@ export  const recordSales=async(req,res,next)=>{
       const {id}= req.params
       const data=req.body
       const userID = req.user._id;
-const transactionDate=  moment(data.date).tz('Africa/Lagos').toDate();
+const transactionDate=  data.date
 
      
 
