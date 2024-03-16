@@ -609,7 +609,7 @@ console.log(transactionDate,'after-conversion')
 
 
   else{
-    salesInstance.createdAt = new Date(); 
+    salesInstance.createdAt = moment().tz('Africa/Lagos').toDate();
     
   }
 const lolo= new Date();
