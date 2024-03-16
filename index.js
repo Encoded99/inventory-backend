@@ -17,8 +17,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //app.use(cors());
 
+const allowedOrigins = [
+  'https://inventoryhero.onrender.com',
+  'https://inventory-frontend-alpha.vercel.app',
+  'https://derial.vercel.app',
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 
 
 
