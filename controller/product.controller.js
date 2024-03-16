@@ -807,8 +807,8 @@ console.log(date,'date from record');
 
  
 
+const startDate = moment.tz(date, 'Africa/Lagos').startOf(reportType).toDate();
 
-const startDate = moment(date).startOf(`${reportType}`).tz('UTC').toDate();
 
 console.log(startDate,'start date')
 
