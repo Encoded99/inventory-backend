@@ -853,7 +853,7 @@ console.log(startDate,'start date')
 
   
 
-  return res.status(200).send(results);
+  return  res.status(200).send({ results, date,startDate });
   } catch (error) {
     console.error('Error fetching sales record:', error);
     res.status(500).send('Internal Server Error');
