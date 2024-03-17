@@ -608,17 +608,7 @@ console.log(transactionDate,'after-conversion')
   }
 
 
-  else{
 
-    const presentDate= new Date()
-
-    salesInstance.createdAt =moment(presentDate).tz('Africa/Lagos').subtract(1, 'days').toDate()
-  }
-  const presentDate= new Date()
-
-   const lala=moment(presentDate).tz('Africa/Lagos').subtract(1, 'days').toDate();
-const lolo= new Date();
-console.log(lolo,'normal lolo',lala,' normal lala')
   
   await salesInstance.save({ session });
 
