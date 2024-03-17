@@ -609,11 +609,16 @@ console.log(transactionDate,'after-conversion')
 
 
   else{
-    salesInstance.createdAt = moment().tz('Africa/Lagos').toDate();
-    
+
+    const presentDate= new Date()
+
+    salesInstance.createdAt =moment(presentDate).tz('Africa/Lagos').subtract(1, 'days').toDate()
   }
+  const presentDate= new Date()
+
+   const lala=moment(presentDate).tz('Africa/Lagos').subtract(1, 'days').toDate();
 const lolo= new Date();
-console.log(lolo,'normal')
+console.log(lolo,'normal lolo',lala,' normal lala')
   
   await salesInstance.save({ session });
 
@@ -798,18 +803,11 @@ export async function fetchUnwindVerifiedProducts(req, res, next) {
 
 
   export const fetchSalesRecord = async (req, res, next) => {
-
-    console.log('fetch sales hit')
+    const { date, reportType } = req.params;
   
-  const {date,reportType}= req.body
-
-    console.log(date, reportType, 'date from record');
-
-
-    
+    console.log(date, 'date from record');
   
-    const startDate =  moment(date).startOf(reportType).toDate();
-    // Parse the date string to a Date object
+    const startDate =  moment.tz(date, 'Africa/Lagos').startOf(reportType).toDate();
   
     console.log(startDate, 'start date');
   
