@@ -424,14 +424,14 @@ export  const recordSales=async(req,res,next)=>{
       const {id}= req.params
       const data=req.body
       const userID = req.user._id;
-      console.log(data,'before-conversion')
+    
 
 let transactionDate=null
 if (data.date){
    transactionDate=  moment(data.date).tz('Africa/Lagos').toDate();
 }
 
-console.log(transactionDate,'after-conversion')
+
 
      
 
@@ -795,11 +795,10 @@ export async function fetchUnwindVerifiedProducts(req, res, next) {
   export const fetchSalesRecord = async (req, res, next) => {
     const { date, reportType } = req.params;
   
-    console.log(date, 'date from record');
   
     const startDate = moment(date).startOf(reportType).toDate();
   
-    console.log(startDate, 'start date');
+   
   
     try {
       const results = await Product.aggregate([
@@ -1333,7 +1332,6 @@ export const uploadCloudinary = async (req, res) => {
 
 
 
-console.log(data.expiryDate,'expiry date');
 
 
 
