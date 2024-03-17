@@ -830,7 +830,7 @@ export async function fetchUnwindVerifiedProducts(req, res, next) {
         }
       ]);
   
-      return res.status(200).send({ results, date, startDate });
+      return res.status(200).send( results);
     } catch (error) {
       console.error('Error fetching sales record:', error);
       res.status(500).send('Internal Server Error');
