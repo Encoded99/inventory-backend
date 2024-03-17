@@ -603,7 +603,7 @@ console.log(transactionDate,'after-conversion')
 
   if (transactionDate){
     salesInstance.createdAt = transactionDate;
-    console.log(salesInstance.createdAt,'abnormal-transact')
+
  
   }
 
