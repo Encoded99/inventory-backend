@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   'https://inventoryhero.onrender.com',
-  'https://inventory-frontend-iota.vercel.app',
+  'https://inventory-frontend-pied.vercel.app',
   'https://derial.vercel.app',
 
 ];
