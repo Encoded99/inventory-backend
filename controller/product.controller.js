@@ -797,7 +797,7 @@ export async function fetchUnwindVerifiedProducts(req, res, next) {
   
     console.log(date, 'date from record');
   
-    const startDate =  moment.tz(date).startOf(reportType).toDate();
+    const startDate = moment(date).startOf(reportType).toDate();
   
     console.log(startDate, 'start date');
   
