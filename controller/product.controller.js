@@ -797,71 +797,53 @@ export async function fetchUnwindVerifiedProducts(req, res, next) {
 
 
 
-export const fetchSalesRecord = async (req, res, next) => {
-  const {date,reportType} =req.params
-
-
-console.log(date,'date from record');
- 
-
-
- 
-
-const startDate = moment.tz(date, 'Africa/Lagos').startOf(reportType).toDate();
-
-
-console.log(startDate,'start date')
-
-
-
-
-
-  try {
-    const results = await Product.aggregate([
-    
-      {
-        $lookup: {
-          from: 'sales',
-          localField: '_id',
-          foreignField: 'product',
-          as: 'salesData',
-        }
-      },
-
-      {
-        $unwind: "$salesData" 
-      },
-
-      
-      {
-        $match: date
-          ? {
-              "salesData.createdAt": {
-                $gte: startDate,
-                $lt: moment(startDate).endOf(`${reportType}`).toDate()
-              }
-            }
-          : {} // Empty match condition if dateToSearch is not provided
-      },
-
-      {
-        $sort: {
-          "salesData.createdAt": -1
-        },
-      }
-    ]);
-
+  export const fetchSalesRecord = async (req, res, next) => {
+    const { date, reportType } = req.params;
   
-
-  return  res.status(200).send({ results, date,startDate });
-  } catch (error) {
-    console.error('Error fetching sales record:', error);
-    res.status(500).send('Internal Server Error');
+    console.log(date, 'date from record');
+  
+    const startDate =  moment(date).startOf(reportType).toDate();
+    // Parse the date string to a Date object
+  
+    console.log(startDate, 'start date');
+  
+    try {
+      const results = await Product.aggregate([
+        {
+          $lookup: {
+            from: 'sales',
+            localField: '_id',
+            foreignField: 'product',
+            as: 'salesData',
+          }
+        },
+        {
+          $unwind: "$salesData"
+        },
+        {
+          $match: date
+            ? {
+                "salesData.createdAt": {
+                  $gte: startDate,
+                  $lt: moment(startDate).endOf(`${reportType}`).toDate()
+                }
+              }
+            : {} // Empty match condition if dateToSearch is not provided
+        },
+        {
+          $sort: {
+            "salesData.createdAt": -1
+          },
+        }
+      ]);
+  
+      return res.status(200).send({ results, date, startDate });
+    } catch (error) {
+      console.error('Error fetching sales record:', error);
+      res.status(500).send('Internal Server Error');
+    }
   }
-}
-
-
-
+  
 
 
 
