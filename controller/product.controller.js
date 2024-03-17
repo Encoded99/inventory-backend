@@ -1204,14 +1204,11 @@ const product= await Sales.findByIdAndDelete(id)
 return res.status(200).json({message:"record deleted sucessfully"})
   }
 
-  catch{
+  catch(err){
     console.log(err);
     return  res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
-
-
 
 
 
@@ -1239,7 +1236,7 @@ export async function fetchSeller(req, res, next) {
 
 
 export const userFetchUnverifiedProducts=async(req,res,next)=>{
-
+  const session= await mongoose.startSession()
   try{
     const userId  = req.user._id
     if(!userId){
