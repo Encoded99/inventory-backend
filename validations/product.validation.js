@@ -70,9 +70,10 @@ export   const validateSales = (data) => {
     packages:Joi.string().required(),
     cost:Joi.number().required(),
     ppu:Joi.number().required(),
+    date:Joi.date().required(),
     name:Joi.string().optional(),
     id:Joi.string().optional(),
-    date:Joi.date().optional(),
+   
 
    
     
