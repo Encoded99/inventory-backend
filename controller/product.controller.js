@@ -798,9 +798,15 @@ export async function fetchUnwindVerifiedProducts(req, res, next) {
 
 
   export const fetchSalesRecord = async (req, res, next) => {
-    const { date, reportType } = req.params;
+
+    console.log('fetch sales hit')
   
-    console.log(date, 'date from record');
+  const {date,reportType}= req.body
+
+    console.log(date, reportType, 'date from record');
+
+
+    
   
     const startDate =  moment(date).startOf(reportType).toDate();
     // Parse the date string to a Date object
