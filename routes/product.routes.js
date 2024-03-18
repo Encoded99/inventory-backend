@@ -23,6 +23,7 @@ import {
  deleteSalesRecord,
  editInventory,
  deleteInventory,
+ deleteAllSales,
 
 
 
@@ -36,6 +37,7 @@ import { uploadMiddleWare } from '../middleware/upload.js';
 const pRouter = Router()
 pRouter.post('/', isLoggedIn, addProduct)
 
+pRouter.delete('/delete-all-sales',isLoggedIn,deleteAllSales)
 
 pRouter.post('/upload-cloudinary',isLoggedIn,uploadMiddleWare,uploadCloudinary)
 pRouter.get('/unverified',isLoggedIn,userFetchUnverifiedProducts)
@@ -53,7 +55,7 @@ pRouter.use(isLoggedIn)
 
 pRouter.post('/add-inventory/:id', addInventory)
 pRouter.post('/record-sales/:id', recordSales)
-pRouter.delete('/delete-sales/:id', deleteSalesRecord)
+pRouter.delete('/delete-sales/:id/:prd', deleteSalesRecord)
 pRouter.delete('/delete-inventory/:id', deleteInventory)
 pRouter.get('/fetch-sales/:date/:reportType', fetchSalesRecord)
 pRouter.get('/fetch-costs/:date/:reportType', fetchCostsRecord)
