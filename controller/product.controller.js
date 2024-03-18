@@ -18,6 +18,8 @@ import moment from 'moment-timezone';
 import mongoose from 'mongoose'
 
 
+
+
 //mport '
 
 config()
@@ -1191,14 +1193,29 @@ const products= await Product.aggregate(
 
 
 export const deleteSalesRecord= async(req,res,next)=>{
-  const {id}=req.params
+  const session = await mongoose.startSession();
+  const {id,prd}=req.params
   const userID=req.user._id
   const user = await User.findById(userID);
   if (req.user.role!=='admin' || !user){
     return res.status(404).send('You are not authorized to perform this action');
   }
   try{
-const product= await Sales.findByIdAndDelete(id)
+    
+    
+    session.startTransaction();
+
+    
+const sale= await Sales.findById(id)
+const inventories= await Inventory.find({product:prd})
+
+
+const firstInv= inventories[0]
+ firstInv.quantity+=sale.quantity
+await firstInv.save({session})
+await   Sales.findByIdAndDelete(id).session(session)
+
+await session.commitTransaction()
 
 
 return res.status(200).json({message:"record deleted sucessfully"})
@@ -1206,7 +1223,12 @@ return res.status(200).json({message:"record deleted sucessfully"})
 
   catch(err){
     console.log(err);
+    await session.abortTransaction()
     return  res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+  finally{
+    session.endSession();
   }
 }
 
@@ -1477,3 +1499,55 @@ finally{
 
 
   
+
+  export const deleteAllSales=async(req,res)=>{
+    const session = await mongoose.startSession();
+    try{
+      session.startTransaction();
+const sales= await Sales.find()
+
+
+
+
+const Inventories= await Inventory.find()
+
+for (const sale of sales){
+  const foundInventory = Inventories.find(inv => inv.product.equals(sale.product));
+
+
+  
+  if (foundInventory){
+    foundInventory.quantity += sale.quantity;
+   await foundInventory.save({ session })
+   await Sales.deleteOne({ _id: sale._id }).session(session); 
+  }
+
+  else{
+    console.log(sale);
+    await session.abortTransaction();
+    return res.status(400).json({ message: 'No matching inventory. Transaction aborted.' });
+
+  }
+}
+
+await session.commitTransaction();
+
+// Send final response after all updates are done
+return res.status(200).json({ message: 'All sales deleted successfully' });
+
+    }
+
+
+    catch(err){
+
+      await session.abortTransaction();
+    console.log(err);
+    return res.status(500).json({ error: 'Internal Server Error' })
+
+    }
+
+    finally {
+      session.endSession();
+    }
+
+  }
