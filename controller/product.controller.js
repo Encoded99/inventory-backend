@@ -8,6 +8,7 @@ import Product from '../database/models/products.js'
 import Inventory from '../database/models/inventory.js'
 import Sales from '../database/models/sales.js'
 import Costs from '../database/models/costs.js'
+import Lasts from '../database/models/lasts.js'
 
 import generateInvoice from '../utils/pdf-generator.js'
 //cloudinary code start here'
@@ -16,6 +17,7 @@ import cloudinary from 'cloudinary';
 import { findOne } from './authentication.js'
 import moment from 'moment-timezone';
 import mongoose from 'mongoose'
+
 
 
 
@@ -553,12 +555,104 @@ if (data.date){
 
     element.quantity=0;
     if (element.quantity === 0) {
+
+
+const inventoryInstance= await Inventory.find({product:element.product})
+
+if (inventoryInstance.length===1){
+
+  const firstObject= inventoryInstance[0]
+
+
+ 
+const foundLast= await Lasts.findOne({product:firstObject.product})
+
+
+
+const newObj = {
+  price: firstObject.price,
+  createdBy: firstObject.createdBy,
+  costPrice: firstObject.costPrice,
+  quantity: firstObject.quantity,
+  cpq: firstObject.cpq,
+  batch: firstObject.batch,
+  expiryDate: firstObject.expiryDate,
+  product: firstObject.product,
+  createdAt: firstObject.createdAt
+};
+
+
+
+
+
+
+
+
+if (foundLast){
+
+
+
+
+  try{
+ const  updatedLast= await Lasts.findOneAndUpdate(
+  { product: firstObject.product },
+  newObj,
+  { new: true, session: session }
+);
+   
+    
+ }
+ 
+ catch(err){
+   console.log('error updating last',err)
+  }
+
+
+
+}
+
+
+else{
+
+  
+
+
+  try{
+    const newDocument = new Lasts(newObj);
+     await newDocument.save({ session });
+ 
+   
+ }
+ 
+ 
+ catch(err){
+   console.log ('error creating a new last',err)
+ }
+ 
+
+}
+
+
+
+
+
+
+
+
+  
+}
+
+
+
+
       await Inventory.deleteOne({ _id: element._id }).session(session);
     }
 
   }
 
   else {
+
+
     element.quantity-=temporaryQuantity;
 
     await Inventory.updateOne({_id:element._id},{$set:{quantity:element.quantity}}).session(session)
@@ -1025,10 +1119,10 @@ const validCloudId = cloudId.filter((element) => element !== undefined);
  await Sales.deleteMany({product:id}).session(session)
  await Inventory.deleteMany({product:id}).session(session)
  await Costs.deleteMany({product:id}).session(session)
-
+ await Lasts.deleteMany({product:id}).session(session)
 
     const product = await Product.findOneAndDelete(
-      { _id: id, })
+      { _id: id, }).session(session)
 
 
     if (validCloudId.length) {
@@ -1210,9 +1304,41 @@ const sale= await Sales.findById(id)
 const inventories= await Inventory.find({product:prd})
 
 
-const firstInv= inventories[0]
- firstInv.quantity+=sale.quantity
-await firstInv.save({session})
+
+
+if(inventories.length===0){
+  const LastInvArrays= await Lasts.find({product:prd})
+
+  if (LastInvArrays){
+    const firstObject= LastInvArrays[0]
+    const newObj = {
+      price: firstObject.price,
+      createdBy: firstObject.createdBy,
+      costPrice: firstObject.costPrice,
+      quantity: firstObject.quantity,
+      cpq: firstObject.cpq,
+      batch: firstObject.batch,
+      expiryDate: firstObject.expiryDate,
+      product: firstObject.product,
+      createdAt: firstObject.createdAt
+    };
+
+    const createdInv= new Inventory(newObj)
+ await   createdInv.save({session})
+
+  }
+}
+
+
+else{
+ 
+  const firstInv= inventories[0]
+  firstInv.quantity+=sale.quantity
+ await firstInv.save({session})
+ 
+}
+
+
 await   Sales.findByIdAndDelete(id).session(session)
 
 await session.commitTransaction()
