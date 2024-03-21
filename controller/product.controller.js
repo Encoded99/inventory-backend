@@ -17,6 +17,7 @@ import cloudinary from 'cloudinary';
 import { findOne } from './authentication.js'
 import moment from 'moment-timezone';
 import mongoose from 'mongoose'
+import logger from '../utils/logger.js'
 
 
 
@@ -425,6 +426,7 @@ export  const recordSales=async(req,res,next)=>{
   
   
       session.startTransaction()
+      
       const {id}= req.params
       const data=req.body
       const userID = req.user._id;
@@ -472,7 +474,6 @@ if (data.date){
   if (error){
     throw new Exception(error.details[0].message, 400);
   }
-  
   
   
   let temporaryQuantity=data.quantity
@@ -541,94 +542,185 @@ if (data.date){
  
   const inventory= populatedProduct[0].inventoryData
 
+
+
+
+  if (inventory.length === 0) {
+  
+    await session.abortTransaction();
+  return res.status(400).send("The product you're attempting to sell is currently out of stock, kindly check the inventory level and restock.");
+
+
+}
+
+
+
+
+  const  allInventoryQuantity= inventory.map((inv)=>{
+    return inv.quantity
+  }).reduce((item,acc)=>{
+
+
+    return item+acc
+
+  },0)
+
+
+
+
+
+  const itemInBulk=allInventoryQuantity/product.upb
+ 
+
+  if (temporaryQuantity>allInventoryQuantity){
+
+    await session.abortTransaction();
+    return res.status(400).send(`The quantity you are trying to sell exceeds the available quantity in the inventory. you have ${itemInBulk} quantities in bulk and  ${allInventoryQuantity} quantities in pieces, please check the inventory and try again.`);
+     
+  }
+
+
+
+
+ 
   
   for (let i=0; i< inventory.length; i++){
   
     const element= inventory[i]
-  
-   if (element.quantity>0){
-
-  if (temporaryQuantity>=element.quantity){
-
-
-    temporaryQuantity-=element.quantity;
-
-    element.quantity=0;
-    if (element.quantity === 0) {
-
-
-const inventoryInstance= await Inventory.find({product:element.product})
-
-if (inventoryInstance.length===1){
-
-  const firstObject= inventoryInstance[0]
-
-
- 
-const foundLast= await Lasts.findOne({product:firstObject.product})
 
 
 
-const newObj = {
-  price: firstObject.price,
-  createdBy: firstObject.createdBy,
-  costPrice: firstObject.costPrice,
-  cpq: firstObject.cpq,
-  batch: firstObject.batch,
-  expiryDate: firstObject.expiryDate,
-  product: firstObject.product,
-  createdAt: firstObject.createdAt
-};
+    if (element){
 
 
 
 
 
+      if (element.quantity>0){
+
+        if (temporaryQuantity>=element.quantity){
+      
+      
+          temporaryQuantity-=element.quantity;
+      
+          element.quantity=0;
+          if (element.quantity === 0) {
+      
+      
+      const inventoryInstance= await Inventory.find({product:element.product})
+      
+      if (inventoryInstance.length===1){
+      
+        const firstObject= inventoryInstance[0]
+      
+      
+       
+      const foundLast= await Lasts.findOne({product:firstObject.product})
+      
+      
+      
+      const newObj = {
+        price: firstObject.price,
+        createdBy: firstObject.createdBy,
+        costPrice: firstObject.costPrice,
+        cpq: firstObject.cpq,
+        batch: firstObject.batch,
+        expiryDate: firstObject.expiryDate,
+        product: firstObject.product,
+        createdAt: firstObject.createdAt
+      };
+      
+      
+      
+      
+      
+      
+      
+      
+      if (foundLast){
+      
+      
+      
+      
+        try{
+       const  updatedLast= await Lasts.findOneAndUpdate(
+        { product: firstObject.product },
+        newObj,
+        { new: true, session: session }
+      );
+         
+          
+       }
+       
+       catch(err){
+         console.log('error updating last',err)
+        }
+      
+      
+      
+      }
+      
+      
+      else{
+      
+        
+      
+      
+        try{
+          const newDocument = new Lasts(newObj);
+           await newDocument.save({ session });
+       
+         
+       }
+       
+       
+       catch(err){
+         console.log ('error creating a new last',err)
+       }
+       
+      
+      }
+      
+      
+      
+      
+      
+      
+      
+      
+        
+      }
+      
+      
+      
+      
+            await Inventory.deleteOne({ _id: element._id }).session(session);
+          }
+      
+        }
+      
+        else {
+      
+      
+          element.quantity-=temporaryQuantity;
+      
+          await Inventory.updateOne({_id:element._id},{$set:{quantity:element.quantity}}).session(session)
+      
+          break
+        }
+      
+      
+      
+      
+      
+         }
+        
 
 
 
-if (foundLast){
-
-
-
-
-  try{
- const  updatedLast= await Lasts.findOneAndUpdate(
-  { product: firstObject.product },
-  newObj,
-  { new: true, session: session }
-);
+else {
    
-    
- }
- 
- catch(err){
-   console.log('error updating last',err)
-  }
-
-
-
-}
-
-
-else{
-
-  
-
-
-  try{
-    const newDocument = new Lasts(newObj);
-     await newDocument.save({ session });
- 
-   
- }
- 
- 
- catch(err){
-   console.log ('error creating a new last',err)
- }
- 
-
+  Msg(res, 'The inventory is empty', 401);
 }
 
 
@@ -636,34 +728,12 @@ else{
 
 
 
-
-
-  
-}
-
-
-
-
-      await Inventory.deleteOne({ _id: element._id }).session(session);
     }
 
-  }
-
-  else {
-
-
-    element.quantity-=temporaryQuantity;
-
-    await Inventory.updateOne({_id:element._id},{$set:{quantity:element.quantity}}).session(session)
-
-    break
-  }
 
 
 
-
-
-   }
+  
   
   
   
@@ -707,6 +777,9 @@ else{
   
   await salesInstance.save({ session });
 
+
+  
+
    await session.commitTransaction()
 
  
@@ -735,6 +808,8 @@ else{
     catch(err){
   
       await session.abortTransaction()
+
+      console.log('error recording sales',err);
   
     }
   
@@ -1648,7 +1723,7 @@ for (const sale of sales){
   }
 
   else{
-    console.log(sale);
+    
     await session.abortTransaction();
     return res.status(400).json({ message: 'No matching inventory. Transaction aborted.' });
 
