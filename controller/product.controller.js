@@ -113,6 +113,7 @@ export async function addProduct(req, res, next) {
       quantity: data.quantity,
       price: data.price,
       costPrice:data.costPrice,
+      initialQuantity:data.quantity,
       cpq:data.costPrice/data.quantity,
       createdBy: { firstName: user.firstName, lastName: user.lastName },
      
@@ -240,6 +241,7 @@ const inventoryData={
   quantity: data.quantity,
       price: data.price,
       costPrice:data.costPrice,
+      initialQuantity:data.quantity,
       cpq:data.costPrice/data.quantity,
       createdBy: { firstName: user.firstName, lastName: user.lastName },
 }
@@ -1574,24 +1576,72 @@ if (data.transactionDate){
     }
 
   try{
-
+    session.startTransaction();
     
 const product= await Inventory.findById(id)
+
+
+
+
+const comingQuantity= data.quantity
+
+
+
+const quantitySold= product.initialQuantity-product.quantity
+
+if(quantitySold===0){
+ 
+
+
+  if (data.quantity){
+    data.initialQuantity=data.quantity
+  }
+
+
+
+
+}
+
+
+
+
+else if (quantitySold>0) {
+
+ 
+data.initialQuantity=data.quantity
+
+if (quantitySold>data.quantity){
+  await session.abortTransaction();
+  return   res.status(400).send(`The quantity entered conflicts with the quantity sold`);
+}
+
+
+else{
+  data.quantity-=quantitySold
+}
+
+
+
+
+}
+
+
+
 
     if (data.costPrice && !data.quantity){
       data.cpq= data.costPrice/product.quantity
     }
     
     if (!data.costPrice && data.quantity){
-      data.cpq= product.costPrice/data.quantity
+      data.cpq= product.costPrice/comingQuantity
     }
 
     if (data.costPrice && data.quantity){
-      data.cpq= data.costPrice/data.quantity
+      data.cpq= data.costPrice/comingQuantity
     }
    
 
-    session.startTransaction();
+    
 const inventoryInstance = await Inventory.findByIdAndUpdate(id, data, {
   new: true,
 })
@@ -1751,3 +1801,10 @@ return res.status(200).json({ message: 'All sales deleted successfully' });
     }
 
   }
+
+
+
+
+
+ 
+  
