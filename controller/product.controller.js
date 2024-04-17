@@ -742,12 +742,22 @@ else {
   }
   
 
-  
+  const  afterInventoryQuantity= inventory.map((inv)=>{
+    return inv.quantity
+  }).reduce((item,acc)=>{
+
+
+    return item+acc
+
+  },0)
+
 
 
 
   const salesData={
-  
+
+    bQuantity:allInventoryQuantity,
+    aQuantity:afterInventoryQuantity,
     packages:data.packages,
     ppu:data.ppu,
     quantity:permanentQuantity,
