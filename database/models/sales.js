@@ -22,6 +22,21 @@ quantity:{
  
 },
 
+
+bQuantity:{
+  type: Number,
+  required:true,
+  
+ },
+
+ aQuantity:{
+  type: Number,
+  required:true,
+ },
+ 
+
+
+
 cost:{
 
  type: Number,
